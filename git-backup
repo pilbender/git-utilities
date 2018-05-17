@@ -1,8 +1,12 @@
 #!/bin/sh
+# Author: Richard Scott Smith
+# Date: 5-17-2018
 
 # Set a backup repo upstream
 
-if [ -z "$1" ]
+# Verify a remote is propoerly specified and, if not, give the user 
+# instructions on options for fixing it
+if [ -z "$1" ]  && [[ ( -z $(git config --get remote.backup.name) ) || ( -z $(git config --get remote.backup.location) ) ]]
 then
   echo "Usage: `basename $0` <remote-for-backups>" >&2
   echo ""
@@ -12,13 +16,35 @@ then
   echo "git backup my-backup-server"
   echo ""
   echo "You can also add this to your global git settings:"
-  echo "git config --global --add remote.backup.name delta-backup"
-  echo "git config --global --add remote.backup.location delta:/home/gitbackup/"
+  echo "git config --global --add remote.backup.name my-backup-server"
+  echo "git config --global --add remote.backup.location my-backup-server:/path/to/git-repo.git"
   echo "Here are your current settings global settings (~/.gitconfig):"
-  echo "remote.backup.name=" $(git config --get remote.backup.name)
-  echo "remote.backup.location=" $(git config --get remote.backup.location)
+  echo "remote.backup.name=$(git config --get remote.backup.name)"
+  echo "remote.backup.location=$(git config --get remote.backup.location)"
   exit 1
 fi
+
+# Decide which remote to use. A user supplied argument overrides.
+REMOTE_NAME=''
+if [ -n "$1" ]
+then
+  # Note: We are only setting the backup remote name and assuming the remote is set up.
+  REMOTE_NAME=$1
+elif [ -n "$(git config --get remote.backup.name)" ] && [ -n "$(git config --get remote.backup.location)" ]
+then
+  # No user supplied argument, make sure both global settings exist, not null
+  REMOTE_NAME=$(git config --get remote.backup.name)
+  git remote add $REMOTE_NAME $(git config --get remote.backup.location)
+  echo "$REMOTE_NAME remote successfully added."
+  echo "It can be removed with this command:"
+  echo "git remote rm $REMOTE_NAME"
+  echo ""
+else 
+  echo "This error condition should not be possible."
+  echo "It means no argument was passed for the remote and there are no global settings either."
+  exit 1
+fi
+
 
 if [ ! -e .git/hooks/post-commit ] 
 then
@@ -28,11 +54,13 @@ then
 # Post commit hook script to push a repository automatically.
 #
 
-exec git push --mirror $1
+exec git push --mirror $REMOTE_NAME
 EOF
 
-  echo ".git/hooks/post-commit successfully created." 
   chmod +x .git/hooks/post-commit
+  echo ".git/hooks/post-commit successfully created." 
+  echo "It can be removed with this command:"
+  echo "rm .git/hooks/post-commit"
 else
   echo ".git/hooks/post-commit already exists"
   echo "Rename it and run again to not lose original .git/hooks/post-commit content, manually edit if needed."
