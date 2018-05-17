@@ -14,12 +14,14 @@ fi
 
 if [ ! -e .git/hooks/post-commit ] 
 then
-  echo "#!/bin/sh" > .git/hooks/post-commit
-  echo "#" >> .git/hooks/post-commit
-  echo "# Post commit hook script to push a repository automatically." >> .git/hooks/post-commit
-  echo "#" >> .git/hooks/post-commit
-  echo "" >> .git/hooks/post-commit
-  echo "exec git push --mirror delta-backup" >> .git/hooks/post-commit
+  cat > .git/hooks/post-commit << EOF
+#!/bin/sh
+#
+# Post commit hook script to push a repository automatically.
+#
+
+exec git push --mirror delta-backup
+EOF
 
   echo ".git/hooks/post-commit successfully created." 
   chmod +x .git/hooks/post-commit
