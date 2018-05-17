@@ -20,7 +20,7 @@ then
 # Post commit hook script to push a repository automatically.
 #
 
-exec git push --mirror delta-backup
+exec git push --mirror $1
 EOF
 
   echo ".git/hooks/post-commit successfully created." 
