@@ -5,10 +5,18 @@
 if [ -z "$1" ]
 then
   echo "Usage: `basename $0` <remote-for-backups>" >&2
+  echo ""
   echo "Add a remote first:"
   echo "git remote add my-backup-server my-backup-server:/path/to/git-repo.git"
   echo "then:"
   echo "git backup my-backup-server"
+  echo ""
+  echo "You can also add this to your global git settings:"
+  echo "git config --global --add remote.backup.name delta-backup"
+  echo "git config --global --add remote.backup.location delta:/home/gitbackup/"
+  echo "Here are your current settings global settings (~/.gitconfig):"
+  echo "remote.backup.name=" $(git config --get remote.backup.name)
+  echo "remote.backup.location=" $(git config --get remote.backup.location)
   exit 1
 fi
 
@@ -27,5 +35,5 @@ EOF
   chmod +x .git/hooks/post-commit
 else
   echo ".git/hooks/post-commit already exists"
-  echo "Rename it and run again to not lose original post-commit content, manually edit if needed."
+  echo "Rename it and run again to not lose original .git/hooks/post-commit content, manually edit if needed."
 fi
