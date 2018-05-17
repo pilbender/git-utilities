@@ -27,5 +27,5 @@ EOF
   chmod +x .git/hooks/post-commit
 else
   echo ".git/hooks/post-commit already exists"
-  echo "Rename it and run again to not lose its content or manually edit"
+  echo "Rename it and run again to not lose original post-commit content, manually edit if needed."
 fi
