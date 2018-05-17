@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Set a backup repo upstream
+
+if [ -z "$1" ]
+then
+  echo "Usage: `basename $0` <remote-for-backups>" >&2
+  echo "Add a remote first:"
+  echo "git remote add my-backup-server my-backup-server:/path/to/git-repo.git"
+  echo "then:"
+  echo "git backup my-backup-server"
+  exit 1
+fi
+
+if [ ! -e .git/hooks/post-commit ] 
+then
+  echo "#!/bin/sh" > .git/hooks/post-commit
+  echo "#" >> .git/hooks/post-commit
+  echo "# Post commit hook script to push a repository automatically." >> .git/hooks/post-commit
+  echo "#" >> .git/hooks/post-commit
+  echo "" >> .git/hooks/post-commit
+  echo "exec git push --mirror delta-backup" >> .git/hooks/post-commit
+
+  echo ".git/hooks/post-commit successfully created." 
+  chmod +x .git/hooks/post-commit
+else
+  echo ".git/hooks/post-commit already exists"
+  echo "Rename it and run again to not lose its content or manually edit"
+fi
